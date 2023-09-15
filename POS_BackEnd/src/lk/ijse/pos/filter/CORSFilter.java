@@ -1,4 +1,4 @@
-package filter;
+package lk.ijse.pos.filter;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /*
-Meeka liyanne resource sharing waladi headers tikak hama thissema repeat wenawa. Anna eka wisada ganna thamayi mee filter eka hadanne.
+Meeka liyanne resource sharing waladi headers tikak hama thissema repeat wenawa. Anna eka wisada ganna thamayi mee lk.ijse.pos.filter eka hadanne.
 */
 
 @WebFilter(urlPatterns = "/*")

@@ -1,4 +1,4 @@
-package listner;
+package lk.ijse.pos.listner;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 

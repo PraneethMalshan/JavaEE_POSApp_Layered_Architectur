@@ -1,4 +1,4 @@
-package servlet.util;
+package lk.ijse.pos.util;
 
 import javax.json.Json;
 import javax.json.JsonArray;

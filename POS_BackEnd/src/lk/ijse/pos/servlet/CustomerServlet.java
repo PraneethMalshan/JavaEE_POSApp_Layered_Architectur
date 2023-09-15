@@ -1,4 +1,4 @@
-package servlet;
+package lk.ijse.pos.servlet;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 
