@@ -11,7 +11,7 @@ $("#btnItem").click(function () {
     let formData = $("#itemForm").serialize();
 
     $.ajax({
-        url:baseUrl+"item",
+        url:"http://localhost:8082/posapplayerd/item",
         method:"post",
         data:formData,
         dataType: "json",
@@ -37,7 +37,7 @@ $("#btnItem").click(function () {
 $("#btnItemDelete").click(function () {
     let code = $("#itemCode").val();
     $.ajax({
-        url:"http://localhost:8082/posapplayerditem?code="+code,
+        url:"http://localhost:8082/posapplayerd/item?code="+code,
         method:"delete",
         success:function (resp) {
             getAllItems();
@@ -65,7 +65,7 @@ $("#btnItemUpdate").click(function () {
     }
 
     $.ajax({
-        url:"http://localhost:8082/posapplayerditem",
+        url:"http://localhost:8082/posapplayerd/item",
         method:"put",
         contentType:"application/json",  //JS Object ekak JSON ekak widiyata yawanawa nam meya daanna oona
         data: JSON.stringify(itemOb),   //JS Object ekak JSON ekak widiyata yawanawa nam aniwaaryayen "   JSON.stringify()  ", ekata daala ywanna oona..

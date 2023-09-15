@@ -1,10 +1,20 @@
-package dto;
+package lk.ijse.pos.entity;
 
-public class PurchaseOrderDTO {
+public class PurchaseOrder {
     private String orderID;
     private String itemCode;
     private String orderQty;
     private double price;
+
+    public PurchaseOrder() {
+    }
+
+    public PurchaseOrder(String orderID, String itemCode, String orderQty, double price) {
+        this.orderID = orderID;
+        this.itemCode = itemCode;
+        this.orderQty = orderQty;
+        this.price = price;
+    }
 
     public String getOrderID() {
         return orderID;
@@ -36,15 +46,5 @@ public class PurchaseOrderDTO {
 
     public void setPrice(double price) {
         this.price = price;
-    }
-
-    public PurchaseOrderDTO(String orderID, String itemCode, String orderQty, double price) {
-        this.orderID = orderID;
-        this.itemCode = itemCode;
-        this.orderQty = orderQty;
-        this.price = price;
-    }
-
-    public PurchaseOrderDTO() {
     }
 }

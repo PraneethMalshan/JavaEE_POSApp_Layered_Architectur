@@ -1,4 +1,4 @@
-package dto;
+package lk.ijse.pos.dto;
 
 public class OrderDTO {
     private String oid;
