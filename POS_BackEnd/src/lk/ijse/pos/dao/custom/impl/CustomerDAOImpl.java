@@ -3,11 +3,9 @@ package lk.ijse.pos.dao.custom.impl;
 import lk.ijse.pos.dao.custom.CustomerDAO;
 import lk.ijse.pos.db.DBConnection;
 import lk.ijse.pos.entity.Customer;
+import lk.ijse.pos.util.CrudUtil;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class CustomerDAOImpl implements CustomerDAO {
     @Override
@@ -31,6 +29,27 @@ public class CustomerDAOImpl implements CustomerDAO {
 
     }
 
+    @Override
+    public ResultSet getAll() throws SQLException, ClassNotFoundException {
+        Connection connection = DBConnection.getDbConnection().getConnection();
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM customer");
+        return resultSet;
+    }
 
+    @Override
+    public boolean update(Customer obj) throws SQLException, ClassNotFoundException {
+        String sql="UPDATE customer SET name=?,address=?,salary=? WHERE id=?";
+        return CrudUtil.execute(sql,obj.getName(),obj.getAddress(),obj.getId(),obj.getSalary());
+//        return CrudUtil.execute(sql,obj.getName(),obj.getAddress(),obj.getId(),Double.parseDouble(obj.getSalary()));
+
+
+    }
+
+    @Override
+    public boolean delete(String id) throws SQLException, ClassNotFoundException {
+        String sql="DELETE FROM customer WHERE id=?";
+        return CrudUtil.execute(sql,id);
+    }
 
 }

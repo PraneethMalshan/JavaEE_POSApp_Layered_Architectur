@@ -18,6 +18,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 @WebServlet(urlPatterns = "/customer")
 public class CustomerServlet extends HttpServlet {
@@ -35,9 +36,7 @@ public class CustomerServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {  /*doGet nam enne doGet method eka call wenawa...*/
 
-//        try (Connection connection = DBConnection.getDbConnection().getConnection()){  /* closabal resourse ekak try resourse ekak karanne closabal resourse eka gihilla dhaanawa try eka issarahayin warahan dhekak dhaala eeka aethulata. ethakota apita maenuwali close karanna dheyaknaee.*/
-        try (Connection connection = ((BasicDataSource)getServletContext().getAttribute("dbcp")).getConnection()){  /* closabal resourse ekak try resourse ekak karanne closabal resourse eka gihilla dhaanawa try eka issarahayin warahan dhekak dhaala eeka aethulata. ethakota apita maenuwali close karanna dheyaknaee.*/
-
+        try {
 
             //            BasicDataSource bds= new BasicDataSource();
 //            bds.setDriverClassName("com.mysql.jdbc.Driver");
@@ -50,12 +49,16 @@ public class CustomerServlet extends HttpServlet {
 //            Connection connection = bds.getConnection();
             /*Mema database connect wena codes nawatha nawatha repeat wena nisaa ihatha code wenuwata wenamama db connection ekak hadala eekata daala eeka methanata aragena thiinawa..
               ethakota boyiler plate codes wena eka nathi wenawa. methana idan ema singleton class eken wada tika karagena yanna puluwan. */
-            PreparedStatement pstm = connection.prepareStatement("select * from Customer");
-            ResultSet rst = pstm.executeQuery();
 
-            JsonArrayBuilder allCustomers = Json.createArrayBuilder();
+            List<CustomerDTo> allCustomer = customerBO.getAllCustomer();
 
-        while (rst.next()) {
+            resp.addHeader("Content-Type", "application/json");
+            resp.addHeader("Access-Control-Allow-Origin","*");
+
+
+            JsonArrayBuilder allCus = Json.createArrayBuilder();
+
+       /* while (rst.next()) {
 
             JsonObjectBuilder customer = Json.createObjectBuilder();//Objectekak hadanawa
             customer.add("id",rst.getString("id"));
@@ -63,27 +66,27 @@ public class CustomerServlet extends HttpServlet {
             customer.add("address",rst.getString("address"));
             customer.add("salary",rst.getDouble("salary"));
             allCustomers.add(customer.build());
-        }
+        }*/
 
-        //Release the connection back to the pool - kansiyuma puul ekee thiina dheyak noomal puul ekata riliis karana methad eka
-//        connection.close();  closabal resourse ekak try resourse ekak karanne closabal resourse eka gihilla dhaanawa try eka issarahayin warahan dhekak dhaala eeka aethulata. ethakota apita maenuwali close karanna dheyaknaee.
+            for (CustomerDTo cus :allCustomer){
+                JsonObjectBuilder customerBuilder = Json.createObjectBuilder();
+                customerBuilder.add("id",cus.getId());
+                customerBuilder.add("name",cus.getName());
+                customerBuilder.add("address",cus.getAddress());
+                customerBuilder.add("salary",cus.getSalary());
+                allCus.add(customerBuilder.build());
+            }
 
-            JsonObjectBuilder job = Json.createObjectBuilder();  //Create Json Object
-            job .add("state","Ok");  //state ekak add karanawa
-            job.add("message","Successfully Loaded..!"); //Message eka add karanawa
-            job.add("data",allCustomers.build());  //data kiyana ekata thamayi ee tika yanne..  eekata add wenna oona customersla tika innna json array eka
-
-            resp.getWriter().print(job.build());
+            resp.setContentType("application/json");
+            resp.getWriter().print(ResponseUtil.genJson("Success","Loaded",allCus.build()));
 
 
-        } catch (SQLException e ){
-            JsonObjectBuilder rjo = Json.createObjectBuilder();
-            rjo.add("state","Error");
-            rjo.add("message",e.getLocalizedMessage());
-            rjo.add("data","");
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().print(rjo.build());
-
+        } catch (ClassNotFoundException e ){
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error",e.getMessage()));
+        } catch (SQLException e){
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
         }
 
     }
@@ -126,40 +129,46 @@ public class CustomerServlet extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json");
         String id = req.getParameter("id");
 
-        try (Connection connection = ((BasicDataSource)getServletContext().getAttribute("dbcp")).getConnection()){
+        resp.addHeader("Content-Type", "application/json");
+        resp.addHeader("Access-Control-Allow-Origin","*");
 
+        try {
 
-            PreparedStatement pstm = connection.prepareStatement("delete from Customer where id=?");
-            pstm.setObject(1, id);
-            boolean b = pstm.executeUpdate() > 0;
-            if (b) {
-                JsonObjectBuilder rjo = Json.createObjectBuilder();
+            if (customerBO.deleteCustomer(id)) {
+               /* JsonObjectBuilder rjo = Json.createObjectBuilder();
                 rjo.add("state","Ok");
                 rjo.add("message","Successfully Deleted..!");
                 rjo.add("data","");
-                resp.getWriter().print(rjo.build());
+                resp.getWriter().print(rjo.build());*/
+                resp.getWriter().print(ResponseUtil.genJson("Success", "Customer Deleted..!"));
 
             }else {
-                throw new RuntimeException("There is no such customer for that ID..!");
+                resp.getWriter().print(ResponseUtil.genJson("Failed", "Customer Delete Failed..!"));
             }
 
-        }catch (RuntimeException e) {
-            JsonObjectBuilder rjo = Json.createObjectBuilder();
-            rjo.add("state","Error");
-            rjo.add("message",e.getLocalizedMessage());
-            rjo.add("data","");
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().print(rjo.build());
+        }catch (ClassNotFoundException e) {
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
+
+//            JsonObjectBuilder rjo = Json.createObjectBuilder();
+//            rjo.add("state","Error");
+//            rjo.add("message",e.getLocalizedMessage());
+//            rjo.add("data","");
+//            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//            resp.getWriter().print(rjo.build());
 
         } catch (SQLException e ){
-            JsonObjectBuilder rjo = Json.createObjectBuilder();
-            rjo.add("state","Error");
-            rjo.add("message",e.getLocalizedMessage());
-            rjo.add("data","");
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().print(rjo.build());
+//            JsonObjectBuilder rjo = Json.createObjectBuilder();
+//            rjo.add("state","Error");
+//            rjo.add("message",e.getLocalizedMessage());
+//            rjo.add("data","");
+//            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//            resp.getWriter().print(rjo.build());
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
 
         }
 
@@ -172,63 +181,48 @@ public class CustomerServlet extends HttpServlet {
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         JsonReader reader = Json.createReader(req.getReader());
-        JsonObject customer = reader.readObject();
-        String id = customer.getString("id");
-        String name = customer.getString("name");
-        String address = customer.getString("address");
-        String salary = customer.getString("salary");
+        JsonObject customerObject = reader.readObject();
 
-//        try (Connection connection = DBConnection.getDbConnection().getConnection()){
-        try (Connection connection = ((BasicDataSource)getServletContext().getAttribute("dbcp")).getConnection()){
-//            BasicDataSource bds= new BasicDataSource();
-//            bds.setDriverClassName("com.mysql.jdbc.Driver");
-//            bds.setUrl("jdbc:mysql://localhost:3306/market");
-//            bds.setPassword("1234");
-//            bds.setUsername("root");
-//            bds.setMaxTotal(2); //How many connection /*awashya connection pramaanaya*/ /*Mee pool ekata connection kiiyak daanna oonada. Ee dhaana eewagen kiiyak active mattamee thiinna oonada. */
-//            bds.setInitialSize(2); //How many connection should be initialized from created connection  /*Daapu connection eken kiiyan active karala thiyanna oonada.*/
-//
-//            Connection connection = bds.getConnection();
-/*
-            Connection connection = DBConnection.getDbConnection().getConnection();
-*/
+        String id = customerObject.getString("id");
+        String name = customerObject.getString("name");
+        String address = customerObject.getString("address");
+        double salary = Double.parseDouble(customerObject.getString("salary"));
+        CustomerDTo customerDTO = new CustomerDTo(id, name, address, salary);
 
-            PreparedStatement pstm = connection.prepareStatement("update Customer set name=?, address=?, salary=? where id=?");
-                pstm.setObject(4,id);
-                pstm.setObject(1,name);
-                pstm.setObject(2,address);
-                pstm.setObject(3,salary);
-                boolean b = pstm.executeUpdate() > 0;
-            if (b) {
-                JsonObjectBuilder rjo = Json.createObjectBuilder();
+        resp.addHeader("Content-Type", "application/json");
+        resp.addHeader("Access-Control-Allow-Origin","*");
+
+        try {
+
+            if (customerBO.updateCustomer(customerDTO)) {
+             /*   JsonObjectBuilder rjo = Json.createObjectBuilder();
                 rjo.add("state","Ok");
                 rjo.add("message","Successfully Updated..!");
                 rjo.add("data","");
-                resp.getWriter().print(rjo.build());
+                resp.getWriter().print(rjo.build());*/
+                resp.getWriter().print(ResponseUtil.genJson("Success", "Customer Updated..!"));
 
             }else {
-                throw new RuntimeException("Wrong ID, Please check the ID");
+                resp.getWriter().print(ResponseUtil.genJson("Failed", "Customer Updated Failed..!"));
 
             }
 
-        }catch (RuntimeException e) {
-            JsonObjectBuilder rjo = Json.createObjectBuilder();
-            rjo.add("state","Error");
-            rjo.add("message",e.getLocalizedMessage());
-            rjo.add("data","");
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().print(rjo.build());
-
-        } catch ( SQLException e ){
-            JsonObjectBuilder rjo = Json.createObjectBuilder();
-            rjo.add("state","Error");
-            rjo.add("message",e.getLocalizedMessage());
-            rjo.add("data","");
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().print(rjo.build());
-
+        } catch (ClassNotFoundException e) {
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
+        } catch (SQLException e){
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
         }
 
+    }
+
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.addHeader("Access-Control-Allow-Origin","*");
+        resp.addHeader("Access-Control-Allow-Methods","PUT");
+        resp.addHeader("Access-Control-Allow-Methods","DELETE");
+        resp.addHeader("Access-Control-Allow-Headers","Content-type");
     }
 
 
