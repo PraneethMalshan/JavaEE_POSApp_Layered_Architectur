@@ -6,7 +6,7 @@ public class Customer {
     private String address;
     private double salary;
 
-    public Customer() {
+    public Customer(String id, String name, String address, String salary) {
     }
 
     public Customer(String id, String name, String address, double salary) {
@@ -40,11 +40,12 @@ public class Customer {
         this.address = address;
     }
 
-    public double getSalary() {
-        return salary;
+    public String getSalary() {
+        return String.valueOf(salary);
     }
 
     public void setSalary(double salary) {
         this.salary = salary;
     }
 }
+

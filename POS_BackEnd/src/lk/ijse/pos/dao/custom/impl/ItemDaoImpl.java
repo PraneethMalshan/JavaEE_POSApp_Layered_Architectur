@@ -1,5 +1,0 @@
-package lk.ijse.pos.dao.custom.impl;
-
-public class ItemDaoImpl {
-
-}

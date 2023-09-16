@@ -1,5 +1,5 @@
 package lk.ijse.pos.dao;
 
-public class DaoFactory {
+public interface SuperDAO {
 
 }

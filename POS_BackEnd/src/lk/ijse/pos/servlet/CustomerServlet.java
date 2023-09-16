@@ -1,8 +1,13 @@
 package lk.ijse.pos.servlet;
 
+import lk.ijse.pos.bo.BOFactory;
+import lk.ijse.pos.bo.custom.CustomerBO;
+import lk.ijse.pos.dto.CustomerDTo;
+import lk.ijse.pos.util.ResponseUtil;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import javax.json.*;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -16,6 +21,14 @@ import java.sql.SQLException;
 
 @WebServlet(urlPatterns = "/customer")
 public class CustomerServlet extends HttpServlet {
+    private CustomerBO customerBO ;
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        customerBO=(CustomerBO) BOFactory.getBoFactory().getBoType(BOFactory.BoType.CUSTOMER);
+
+    }
+
+
     //Front end eken geennath puluwan krama
         //Query String = Front Endeken Data geenna data transfer karanna oona ekkenekta puluwan...
                             //Meeken geenna baha...Form Data(x=www-form-url-encoded) = Get ekenkochchara yawanna try kalath eken enne url ekak widiyata.. eyaa form data geniyanne naha.. geniyanne query string.. get method eka thiinne deewal ganna.. habayi eyaa data yawanna haduwoth data geniyanne query string  ekak widiyata...
@@ -81,54 +94,31 @@ public class CustomerServlet extends HttpServlet {
         //Form Data(x=www-form-url-encoded)
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String id = req.getParameter("id");
-        String name = req.getParameter("name");
-        String address = req.getParameter("address");
-        String salary = req.getParameter("salary");
+
+        resp.setContentType("application/json");
+
+        resp.addHeader("Content-Type", "application/json");
+        resp.addHeader("Access-Control-Allow-Origin","*");
 
 
+        try {
 
-//        try (Connection connection = DBConnection.getDbConnection().getConnection()){
-        try (Connection connection = ((BasicDataSource)getServletContext().getAttribute("dbcp")).getConnection()){
-            /*BasicDataSource bds= new BasicDataSource();
-            bds.setDriverClassName("com.mysql.jdbc.Driver");
-            bds.setUrl("jdbc:mysql://localhost:3306/market");
-            bds.setPassword("1234");
-            bds.setUsername("root");
+            String id=req.getParameter("id");
+            String name=req.getParameter("name");
+            String address=req.getParameter("address");
+            double salary= Double.parseDouble(req.getParameter("salary"));
 
-            bds.setMaxTotal(2);
-            bds.setInitialSize(2);
+            if (customerBO.saveCustomer(new CustomerDTo(id,name,address,salary))){
+                resp.getWriter().print(ResponseUtil.genJson("Success","Successfully Added"));
 
-            Connection connection = bds.getConnection();*/
+            }else {
+                resp.getWriter().print(ResponseUtil.genJson("error","Customer Added Fail"));
+            }
 
+        } catch (SQLException | ClassNotFoundException e){
 
-/*
-                Connection connection = DBConnection.getDbConnection().getConnection();
-*/
-                PreparedStatement pstm = connection.prepareStatement("insert into Customer values(?,?,?,?)");
-                pstm.setObject(1,id);
-                pstm.setObject(2,name);
-                pstm.setObject(3,address);
-                pstm.setObject(4,salary);
-
-                boolean b = pstm.executeUpdate() > 0;  //*Boolean value ekakata gaththa values tika execute kiriima*//*
-                if (b){
-                    JsonObjectBuilder responseObject = Json.createObjectBuilder();
-                    responseObject.add("state","Ok");
-                    responseObject.add("message","Successfully Added..!");
-                    responseObject.add("data","");
-                    resp.getWriter().print(responseObject.build());
-                    }
-        }
-
-        catch (SQLException e){
-            JsonObjectBuilder error = Json.createObjectBuilder();
-            error.add("state","Error");
-            error.add("message",e.getLocalizedMessage());
-            error.add("data","");
-//            resp.setStatus(500);
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().print(error.build());
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error",e.getMessage()));
 
         }
    }
@@ -140,18 +130,7 @@ public class CustomerServlet extends HttpServlet {
 
         try (Connection connection = ((BasicDataSource)getServletContext().getAttribute("dbcp")).getConnection()){
 
-//            BasicDataSource bds= new BasicDataSource();
-//            bds.setDriverClassName("com.mysql.jdbc.Driver");
-//            bds.setUrl("jdbc:mysql://localhost:3306/market");
-//            bds.setPassword("1234");
-//            bds.setUsername("root");
-//            bds.setMaxTotal(2); //How many connection /*awashya connection pramaanaya*/ /*Mee pool ekata connection kiiyak daanna oonada. Ee dhaana eewagen kiiyak active mattamee thiinna oonada. */
-//            bds.setInitialSize(2); //How many connection should be initialized from created connection  /*Daapu connection eken kiiyan active karala thiyanna oonada.*/
-//
-//            Connection connection = bds.getConnection();
-/*
-            Connection connection = DBConnection.getDbConnection().getConnection();
-*/
+
             PreparedStatement pstm = connection.prepareStatement("delete from Customer where id=?");
             pstm.setObject(1, id);
             boolean b = pstm.executeUpdate() > 0;

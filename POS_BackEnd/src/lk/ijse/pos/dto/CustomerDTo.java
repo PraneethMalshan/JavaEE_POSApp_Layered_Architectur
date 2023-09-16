@@ -1,15 +1,15 @@
 package lk.ijse.pos.dto;
 
-public class CustomerDTO {
+public class CustomerDTo {
     private String id;
     private String name;
     private String address;
     private double salary;
 
-    public CustomerDTO() {
+    public CustomerDTo() {
     }
 
-    public CustomerDTO(String id, String name, String address, double salary) {
+    public CustomerDTo(String id, String name, String address, double salary) {
         this.id = id;
         this.name = name;
         this.address = address;
