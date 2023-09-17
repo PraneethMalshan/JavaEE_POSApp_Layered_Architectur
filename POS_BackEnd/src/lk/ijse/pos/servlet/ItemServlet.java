@@ -17,6 +17,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 @WebServlet(urlPatterns = "/item")
 public class ItemServlet extends HttpServlet {
@@ -35,7 +36,13 @@ public class ItemServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {  /*doGet nam enne doGet method eka call wenawa...*/
 
 //        try (Connection connection = DBConnection.getDbConnection().getConnection()){  /* closabal resourse ekak try resourse ekak karanne closabal resourse eka gihilla dhaanawa try eka issarahayin warahan dhekak dhaala eeka aethulata. ethakota apita maenuwali close karanna dheyaknaee.*/
-        try (Connection connection = ((BasicDataSource)getServletContext().getAttribute("dbcp")).getConnection()){  /* closabal resourse ekak try resourse ekak karanne closabal resourse eka gihilla dhaanawa try eka issarahayin warahan dhekak dhaala eeka aethulata. ethakota apita maenuwali close karanna dheyaknaee.*/
+        try {
+
+            List<ItemDTO> allItem = itemBO.getAllItem();
+
+            resp.addHeader("Content-Type", "application/json");
+            resp.addHeader("Access-Control-Allow-Origin","*");
+
             //How to configure DBCP Pool
 //            BasicDataSource bds= new BasicDataSource();
 //            bds.setDriverClassName("com.mysql.jdbc.Driver");
@@ -52,39 +59,57 @@ public class ItemServlet extends HttpServlet {
 /*
             Connection connection = DBConnection.getDbConnection().getConnection();
 */
-            PreparedStatement pstm = connection.prepareStatement("select * from Item");
+            /*PreparedStatement pstm = connection.prepareStatement("select * from Item");
             ResultSet rst = pstm.executeQuery();
-
+*/
             JsonArrayBuilder allItems = Json.createArrayBuilder();
 
-        while (rst.next()) {
+        for (ItemDTO dto:allItem) {
 
-            JsonObjectBuilder item = Json.createObjectBuilder();//Objectekak hadanawa
-            item.add("code",rst.getString("code"));
+            JsonObjectBuilder itemBuilder = Json.createObjectBuilder();//Objectekak hadanawa
+
+           /* item.add("code",rst.getString("code"));
             item.add("description",rst.getString("description"));
             item.add("qtyOnHand",rst.getString("qtyOnHand"));
             item.add("unitPrice",rst.getDouble("unitPrice"));
-            allItems.add(item.build());
+            allItems.add(item.build());*/
+
+            itemBuilder.add("code",dto.getCode());
+            itemBuilder.add("description",dto.getDescription());
+            itemBuilder.add("qtyOnHand",dto.getQtyOnHand());
+            itemBuilder.add("unitPrice",dto.getUnitPrice());
+            allItems.add(itemBuilder.build());
+
         }
 
             //Release the connection back to the pool
 //            connection.close();  /* closabal resourse ekak try resourse ekak karanne closabal resourse eka gihilla dhaanawa try eka issarahayin warahan dhekak dhaala eeka aethulata. ethakota apita maenuwali close karanna dheyaknaee.*/
 
-            JsonObjectBuilder job = Json.createObjectBuilder();  //Create Json Object
+           /* JsonObjectBuilder job = Json.createObjectBuilder();  //Create Json Object
             job .add("state","Ok");  //state ekak add karanawa
             job.add("message","Successfully Loaded..!"); //Message eka add karanawa
             job.add("data",allItems.build());  //data kiyana ekata thamayi ee tika yanne..  eekata add wenna oona customersla tika innna json array eka
 
-            resp.getWriter().print(job.build());
+            resp.getWriter().print(job.build());*/
+
+            resp.setContentType("application/json");
+            resp.getWriter().print(ResponseUtil.genJson("Success", "Loaded", allItems.build()));
 
 
-        } catch ( SQLException e ){
-            JsonObjectBuilder rjo = Json.createObjectBuilder();
+
+        }catch (ClassNotFoundException e){
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
+        }catch (SQLException e ){
+            /*JsonObjectBuilder rjo = Json.createObjectBuilder();
             rjo.add("state","Error");
             rjo.add("message",e.getLocalizedMessage());
             rjo.add("data","");
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().print(rjo.build());
+            resp.getWriter().print(rjo.build());*/
+
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
 
         }
 
@@ -216,14 +241,18 @@ public class ItemServlet extends HttpServlet {
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         JsonReader reader = Json.createReader(req.getReader());
-        JsonObject customer = reader.readObject();
-        String code = customer.getString("code");
-        String description = customer.getString("description");
-        String qtyOnHand = customer.getString("qtyOnHand");
-        String unitPrice = customer.getString("unitPrice");
+        JsonObject customerObject = reader.readObject();
+
+        String code = customerObject.getString("code");
+        String description = customerObject.getString("description");
+        String qtyOnHand = customerObject.getString("qtyOnHand");
+        double unitPrice = Double.parseDouble(customerObject.getString("unitPrice"));
+
+        resp.addHeader("Content-Type", "application/json");
+        resp.addHeader("Access-Control-Allow-Origin","*");
 
 //        try (Connection connection = DBConnection.getDbConnection().getConnection()){
-        try (Connection connection = ((BasicDataSource)getServletContext().getAttribute("dbcp")).getConnection()){
+        try {
 //            BasicDataSource bds= new BasicDataSource();
 //            bds.setDriverClassName("com.mysql.jdbc.Driver");
 //            bds.setUrl("jdbc:mysql://localhost:3306/market");
@@ -237,31 +266,40 @@ public class ItemServlet extends HttpServlet {
             Connection connection = DBConnection.getDbConnection().getConnection();
 */
 
-            PreparedStatement pstm = connection.prepareStatement("update Item set description=?, qtyOnHand=?, unitPrice=? where code=?");
+           /* PreparedStatement pstm = connection.prepareStatement("update Item set description=?, qtyOnHand=?, unitPrice=? where code=?");
                 pstm.setObject(4,code);
                 pstm.setObject(1,description);
                 pstm.setObject(2,qtyOnHand);
                 pstm.setObject(3,unitPrice);
-                boolean b = pstm.executeUpdate() > 0;
-            if (b) {
-                JsonObjectBuilder rjo = Json.createObjectBuilder();
+                boolean b = pstm.executeUpdate() > 0;*/
+
+            if (itemBO.updateItem(new ItemDTO(code,description,qtyOnHand,unitPrice))) {
+                /*JsonObjectBuilder rjo = Json.createObjectBuilder();
                 rjo.add("state","Ok");
                 rjo.add("message","Successfully Updated..!");
                 rjo.add("data","");
-                resp.getWriter().print(rjo.build());
+                resp.getWriter().print(rjo.build());*/
+
+                resp.getWriter().print(ResponseUtil.genJson("Success","Item Updated..!"));
 
             }else {
-                throw new RuntimeException("Wrong ID, Please check the ID");
-
+                resp.getWriter().print(ResponseUtil.genJson("Failed","Item Updated Failed..!"));
             }
 
-        }catch (SQLException | RuntimeException e) {
-            JsonObjectBuilder rjo = Json.createObjectBuilder();
+        } catch (ClassNotFoundException e){
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
+        }
+        catch (SQLException e) {
+          /*  JsonObjectBuilder rjo = Json.createObjectBuilder();
             rjo.add("state","Error");
             rjo.add("message",e.getLocalizedMessage());
             rjo.add("data","");
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().print(rjo.build());
+            resp.getWriter().print(rjo.build());*/
+
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
 
         }
     }
