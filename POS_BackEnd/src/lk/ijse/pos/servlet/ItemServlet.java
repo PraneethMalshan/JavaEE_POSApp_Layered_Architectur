@@ -1,5 +1,9 @@
 package lk.ijse.pos.servlet;
 
+import lk.ijse.pos.bo.BOFactory;
+import lk.ijse.pos.bo.custom.ItemBO;
+import lk.ijse.pos.dto.ItemDTO;
+import lk.ijse.pos.util.ResponseUtil;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import javax.json.*;
@@ -16,6 +20,14 @@ import java.sql.SQLException;
 
 @WebServlet(urlPatterns = "/item")
 public class ItemServlet extends HttpServlet {
+    private ItemBO itemBO;
+    @Override
+    public void init(){
+        itemBO = (ItemBO) BOFactory.getBoFactory().getBoType(BOFactory.BoType.ITEM);
+
+    }
+
+
     //Front end eken geennath puluwan krama
         //Query String = Front Endeken Data geenna data transfer karanna oona ekkenekta puluwan...
                             //Meeken geenna baha...Form Data(x=www-form-url-encoded) = Get ekenkochchara yawanna try kalath eken enne url ekak widiyata.. eyaa form data geniyanne naha.. geniyanne query string.. get method eka thiinne deewal ganna.. habayi eyaa data yawanna haduwoth data geniyanne query string  ekak widiyata...
@@ -84,14 +96,22 @@ public class ItemServlet extends HttpServlet {
         //Form Data(x=www-form-url-encoded)
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String code = req.getParameter("code");
+       /* String code = req.getParameter("code");
         String description = req.getParameter("description");
         String qtyOnHand = req.getParameter("qtyOnHand");
-        String unitPrice = req.getParameter("unitPrice");
+        String unitPrice = req.getParameter("unitPrice");*/
 
+        resp.setContentType("application/json");
+
+        resp.addHeader("Content-Type","application/json");
+        resp.addHeader("Access-Control-Allow-Origin","*");
 
 //        try (Connection connection = DBConnection.getDbConnection().getConnection()){
-        try (Connection connection = ((BasicDataSource)getServletContext().getAttribute("dbcp")).getConnection()){
+        try {
+            String code = req.getParameter("code");
+            String description = req.getParameter("description");
+            String qtyOnHand = req.getParameter("qtyOnHand");
+            double unitPrice = Double.parseDouble(req.getParameter("unitPrice"));
         /*    BasicDataSource bds= new BasicDataSource();
             bds.setDriverClassName("com.mysql.jdbc.Driver");
             bds.setUrl("jdbc:mysql://localhost:3306/market");
@@ -106,28 +126,36 @@ public class ItemServlet extends HttpServlet {
 /*
             Connection connection = DBConnection.getDbConnection().getConnection();
 */
-            PreparedStatement pstm = connection.prepareStatement("insert into Item values(?,?,?,?)");
-                pstm.setObject(1,code);
-                pstm.setObject(2,description);
-                pstm.setObject(3,qtyOnHand);
-                pstm.setObject(4,unitPrice);
+//            PreparedStatement pstm = connection.prepareStatement("insert into Item values(?,?,?,?)");
+//                pstm.setObject(1,code);
+//                pstm.setObject(2,description);
+//                pstm.setObject(3,qtyOnHand);
+//                pstm.setObject(4,unitPrice);
+//
+//                boolean b = pstm.executeUpdate() > 0;  //*Boolean value ekakata gaththa values tika execute kiriima*//*
 
-                boolean b = pstm.executeUpdate() > 0;  //*Boolean value ekakata gaththa values tika execute kiriima*//*
-                if (b){
-                    JsonObjectBuilder responseObject = Json.createObjectBuilder();
+                if (itemBO.saveItem(new ItemDTO(code,description,qtyOnHand,unitPrice))){
+                   /* JsonObjectBuilder responseObject = Json.createObjectBuilder();
                     responseObject.add("state","Ok");
                     responseObject.add("message","Successfully Added..!");
                     responseObject.add("data","");
-                    resp.getWriter().print(responseObject.build());
+                    resp.getWriter().print(responseObject.build());*/
+                    resp.getWriter().print(ResponseUtil.genJson("Success", "Successfully Added..!"));
+
                     }
 
-        }catch (SQLException e){
-            JsonObjectBuilder error = Json.createObjectBuilder();
+        }catch (ClassNotFoundException e){
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error",e.getMessage()));
+        } catch (SQLException e){
+            /*JsonObjectBuilder error = Json.createObjectBuilder();
             error.add("state","Error");
             error.add("message",e.getLocalizedMessage());
             error.add("data","");
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().print(error.build());
+            resp.getWriter().print(error.build());*/
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
 
         }
    }
