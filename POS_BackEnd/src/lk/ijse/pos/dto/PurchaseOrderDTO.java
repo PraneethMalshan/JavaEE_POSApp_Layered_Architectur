@@ -3,8 +3,18 @@ package lk.ijse.pos.dto;
 public class PurchaseOrderDTO {
     private String orderID;
     private String itemCode;
-    private String orderQty;
+    private int orderQty;
     private double price;
+    private double buyQty;
+    public double getBuyQty() {
+        return buyQty;
+    }
+
+    public void setBuyQty(double buyQty) {
+        this.buyQty = buyQty;
+    }
+
+
 
     public String getOrderID() {
         return orderID;
@@ -22,11 +32,11 @@ public class PurchaseOrderDTO {
         this.itemCode = itemCode;
     }
 
-    public String getOrderQty() {
+    public int getOrderQty() {
         return orderQty;
     }
 
-    public void setOrderQty(String orderQty) {
+    public void setOrderQty(int orderQty) {
         this.orderQty = orderQty;
     }
 
@@ -38,11 +48,12 @@ public class PurchaseOrderDTO {
         this.price = price;
     }
 
-    public PurchaseOrderDTO(String orderID, String itemCode, String orderQty, double price) {
+    public PurchaseOrderDTO(String orderID, String itemCode, int orderQty, double price, double buyQty) {
         this.orderID = orderID;
         this.itemCode = itemCode;
         this.orderQty = orderQty;
         this.price = price;
+        this.buyQty = buyQty;
     }
 
     public PurchaseOrderDTO() {

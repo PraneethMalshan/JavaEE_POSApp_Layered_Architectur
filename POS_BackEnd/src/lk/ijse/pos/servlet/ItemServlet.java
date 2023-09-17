@@ -191,10 +191,14 @@ public class ItemServlet extends HttpServlet {
                 //Form data widiyata ganne naha...
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json");
         String code = req.getParameter("code");
 
+        resp.addHeader("Content-Type", "application/json");
+        resp.addHeader("Access-Control-Allow-Origin","*");
+
 //        try (Connection connection = DBConnection.getDbConnection().getConnection()){
-        try (Connection connection = ((BasicDataSource)getServletContext().getAttribute("dbcp")).getConnection()){
+        try {
 //            BasicDataSource bds= new BasicDataSource();
 //            bds.setDriverClassName("com.mysql.jdbc.Driver");
 //            bds.setUrl("jdbc:mysql://localhost:3306/market");
@@ -208,31 +212,39 @@ public class ItemServlet extends HttpServlet {
             Connection connection = DBConnection.getDbConnection().getConnection();
 */
 
-            PreparedStatement pstm = connection.prepareStatement("delete from Item where code=?");
+          /*  PreparedStatement pstm = connection.prepareStatement("delete from Item where code=?");
             pstm.setObject(1, code);
-            boolean b = pstm.executeUpdate() > 0;
-            if (b) {
-                JsonObjectBuilder rjo = Json.createObjectBuilder();
+            boolean b = pstm.executeUpdate() > 0;*/
+
+
+            if (itemBO.deleteItem(code)) {
+                /*JsonObjectBuilder rjo = Json.createObjectBuilder();
                 rjo.add("state","Ok");
                 rjo.add("message","Successfully Deleted..!");
                 rjo.add("data","");
-                resp.getWriter().print(rjo.build());
+                resp.getWriter().print(rjo.build());*/
+
+                resp.getWriter().print(ResponseUtil.genJson("Success", "Item Deleted..!"));
 
             }else {
-                throw new RuntimeException("There is no such customer for that ID..!");
+                resp.getWriter().print(ResponseUtil.genJson("Failed", "Item Delete Failed..!"));
             }
 
-        }catch (SQLException | RuntimeException e) {
-            JsonObjectBuilder rjo = Json.createObjectBuilder();
+        }catch (ClassNotFoundException e){
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
+        } catch (SQLException e) {
+            /*JsonObjectBuilder rjo = Json.createObjectBuilder();
             rjo.add("state","Error");
             rjo.add("message",e.getLocalizedMessage());
             rjo.add("data","");
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().print(rjo.build());
+            resp.getWriter().print(rjo.build());*/
+
+            resp.setStatus(500);
+            resp.getWriter().print(ResponseUtil.genJson("Error", e.getMessage()));
 
         }
-
-
     }
 
 //UPDATE===============================
@@ -303,4 +315,13 @@ public class ItemServlet extends HttpServlet {
 
         }
     }
+
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.addHeader("Access-Control-Allow-Origin","*");
+        resp.addHeader("Access-Control-Allow-Methods","PUT");
+        resp.addHeader("Access-Control-Allow-Methods","DELETE");
+        resp.addHeader("Access-Control-Allow-Headers","Content-type");
+    }
+
 }

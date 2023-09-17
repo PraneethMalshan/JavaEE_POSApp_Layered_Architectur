@@ -91,6 +91,7 @@ function getAllCustomers() {
     $("#tblCustomer").empty();
     $.ajax({
         url:baseUrl+"customer",
+        dataType :"json",
         success:function (res) {
             // console.log(res)
             for (let c of res.data) {

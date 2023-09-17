@@ -41,4 +41,9 @@ public class ItemBOImpl implements ItemBO {
     public boolean updateItem(ItemDTO itemDTO) throws SQLException, ClassNotFoundException {
         return itemDAO.update(new Item(itemDTO.getCode(),itemDTO.getDescription(),itemDTO.getQtyOnHand(),itemDTO.getUnitPrice()));
     }
+
+    @Override
+    public boolean deleteItem(String code) throws SQLException, ClassNotFoundException {
+        return itemDAO.delete(code);
+    }
 }

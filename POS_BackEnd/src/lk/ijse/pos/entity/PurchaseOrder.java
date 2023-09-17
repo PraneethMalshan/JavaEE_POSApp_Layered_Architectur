@@ -6,7 +6,7 @@ public class PurchaseOrder {
     private String orderQty;
     private double price;
 
-    public PurchaseOrder() {
+    public PurchaseOrder(String orderID, String itemCode, int orderQty, double price) {
     }
 
     public PurchaseOrder(String orderID, String itemCode, String orderQty, double price) {
